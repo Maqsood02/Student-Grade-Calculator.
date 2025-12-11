@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Grade Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .menu-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .section { display: none; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .action-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-right: 10px;
+        }
+        .action-btn:hover { background: #5568d3; }
+        .action-btn.secondary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .action-btn.secondary:hover { background: linear-gradient(135deg, #5568d3 0%, #653b99 100%); }
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+            border-left: 5px solid #667eea;
+        }
+        .result-header {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .result-label { font-weight: 600; color: #555; }
+        .result-value { color: #333; }
+        .grade-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .grade-o { background: #28a745; color: white; }
+        .grade-a-plus { background: #17a2b8; color: white; }
+        .grade-a { background: #007bff; color: white; }
+        .grade-b-plus { background: #6f42c1; color: white; }
+        .grade-b { background: #6610f2; color: white; }
+        .grade-c { background: #fd7e14; color: white; }
+        .grade-d { background: #dc3545; color: white; }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .record-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+        .record-item:hover { border-color: #667eea; }
+        .record-name {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 18px;
+        }
+        .server-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .server-online {
+            background: #28a745;
+            color: white;
+        }
+        .server-offline {
+            background: #dc3545;
+            color: white;
+        }
+        /* Button animations */
+        .menu-btn, .action-btn {
+            transition: transform 0.25s cubic-bezier(.2,.9,.3,1), box-shadow 0.25s, background 0.25s;
+            will-change: transform;
+        }
+        .menu-btn:hover, .action-btn:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        .menu-btn:active, .action-btn:active {
+            transform: translateY(0) scale(0.99);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+    </style>
+</head>
+<body>
+    <div id="serverStatus" class="server-status server-offline">🔴 Server Offline</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Student Grade Management System</h1>
+            
+        </div>
+
+        <div class="content">
+            <div class="menu">
+                <button class="menu-btn" onclick="showSection('input')">📝 Enter Details</button>
+                <button class="menu-btn" onclick="showSection('saved')">💾 View All Records</button>
+            </div>
+
+            <div id="alerts"></div>
+
+            <div id="input" class="section active">
+                <h2 style="margin-bottom: 20px; color: #333;">Enter Student Details</h2>
+                <form id="studentForm">
+                    <div class="form-group">
+                        <label for="studentName">Student Name</label>
+                        <input type="text" id="studentName" name="name" required placeholder="Enter full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="rollNumber">Roll Number</label>
+                        <input type="number" id="rollNumber" name="roll" required placeholder="Enter roll number">
+                    </div>
+                    <div class="form-group">
+                        <label for="Branch">Branch</label>
+                        <input type="text" id="Branch" name="branch" required placeholder="Enter Your Branch">
+                    </div>
+                    <div class="form-group">
+                        <label for="Semester">Semester</label>
+                        <input type="number" id="Semester" name="semester" required placeholder="Enter Semester">
+                    </div>
+                    <div class="form-group">
+                        <label for="Year">Academic Year</label>
+                        <input type="number" id="Year" name="year" required placeholder="Enter Year (e.g. 2025)">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Marks (0-100)</label>
+                        <div class="subjects-grid">
+                            <div>
+                                <label for="mark1">Subject 1</label>
+                                <input type="number" id="mark1" name="mark1" min="0" max="100" required>
+                            </div>
+                            <div>
+                                <label for="mark2">Subject 2</label>
+                                <input type="number" id="mark2" name="mark2" min="0" max="100" required>
+                            </div>
+                            <div>
+                                <label for="mark3">Subject 3</label>
+                                <input type="number" id="mark3" name="mark3" min="0" max="100" required>
+                            </div>
+                            <div>
+                                <label for="mark4">Subject 4</label>
+                                <input type="number" id="mark4" name="mark4" min="0" max="100" required>
+                            </div>
+                            <div>
+                                <label for="mark5">Subject 5</label>
+                                <input type="number" id="mark5" name="mark5" min="0" max="100" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="action-btn" id="submitBtn">
+                        Calculate & Save Grade
+                    </button>
+                    <button type="button" class="action-btn secondary" onclick="clearForm()">
+                        Clear Form
+                    </button>
+                </form>
+                <div id="resultDisplay"></div>
+            </div>
+
+            <div id="saved" class="section">
+                <h2 style="margin-bottom: 20px; color: #333333;">All Saved Records</h2>
+                <button class="action-btn" onclick="loadRecords()">🔄 Refresh Records</button>
+                <div id="savedRecords" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+
+        async function checkServer() {
+            try {
+                const response = await fetch(`${API_URL}/api/records`);
+                if (response.ok) {
+                    document.getElementById('serverStatus').className = 'server-status server-online';
+                    document.getElementById('serverStatus').textContent = '🟢 Server Online';
+                    return true;
+                }
+            } catch (e) {
+                // ignore
+            }
+            document.getElementById('serverStatus').className = 'server-status server-offline';
+            document.getElementById('serverStatus').textContent = '🔴 Server Offline';
+            return false;
+        }
+
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if (id === 'saved') loadRecords();
+        }
+
+        function showAlert(message, type) {
+            const alertsDiv = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-' + type;
+            alert.textContent = message;
+            alertsDiv.appendChild(alert);
+            setTimeout(() => alert.remove(), 4000);
+        }
+
+        async function submitForm(e) {
+            e.preventDefault();
+            const serverOnline = await checkServer();
+            if (!serverOnline) return showAlert('Error: C Backend Server is not running! Please start the server.', 'error');
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            const prev = btn.innerHTML;
+            btn.innerHTML = '<span class="loading"></span> Processing...';
+
+            const formData = new FormData(e.target);
+            const params = new URLSearchParams(formData).toString();
+
+            try {
+                const response = await fetch(`${API_URL}/api/calculate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params
+                });
+                if (!response.ok) return showAlert('Error: Failed to process request', 'error');
+                const data = await response.json();
+                displayResult(data);
+                showAlert('✅ Grade calculated and saved successfully!', 'success');
+                e.target.reset();
+            } catch (err) {
+                showAlert('Error: Could not connect to server', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = prev;
+            }
+        }
+
+        function displayResult(data) {
+            const gradeClass = ({'O':'grade-o','A+':'grade-a-plus','A':'grade-a','B+':'grade-b-plus','B':'grade-b','C':'grade-c','D':'grade-d'})[data.grade] || 'grade-d';
+            const status = data.gradePoint === 0 ? '<span style="color: #dc3545; font-weight: 600;">FAIL</span>' : '<span style="color: #28a745; font-weight: 600;">PASS</span>';
+
+            const html = `
+                <div class="result-card">
+                    <div class="result-header">📋 Grade Report (Saved to grades.txt)</div>
+                    <div class="result-row"><span class="result-label">Student Name:</span><span class="result-value">${data.name}</span></div>
+                    <div class="result-row"><span class="result-label">Roll Number:</span><span class="result-value">${data.rollNumber}</span></div>
+                    <div class="result-row"><span class="result-label">Branch:</span><span class="result-value">${data.branch || ''}</span></div>
+                    <div class="result-row"><span class="result-label">Semester:</span><span class="result-value">${data.semester || ''}</span></div>
+                    <div class="result-row"><span class="result-label">Year:</span><span class="result-value">${data.year || ''}</span></div>
+                    <div class="result-row"><span class="result-label">Total Marks:</span><span class="result-value">${Number(data.total).toFixed(2)} / 500</span></div>
+                    <div class="result-row"><span class="result-label">Average:</span><span class="result-value">${Number(data.average).toFixed(2)}%</span></div>
+                    <div class="result-row"><span class="result-label">Grade:</span><span class="result-value"><span class="grade-badge ${gradeClass}">${data.grade}</span></span></div>
+                    <div class="result-row"><span class="result-label">Grade Point:</span><span class="result-value">${data.gradePoint}</span></div>
+                    <div class="result-row"><span class="result-label">Status:</span><span class="result-value">${status}</span></div>
+                </div>`;
+            document.getElementById('resultDisplay').innerHTML = html;
+        }
+
+        async function loadRecords() {
+            const serverOnline = await checkServer();
+            if (!serverOnline) return document.getElementById('savedRecords').innerHTML = '<div class="alert alert-error">Server is offline. Cannot load records.</div>';
+            try {
+                const response = await fetch(`${API_URL}/api/records`);
+                if (!response.ok) return document.getElementById('savedRecords').innerHTML = '<div class="alert alert-error">Failed to load records.</div>';
+                const data = await response.json();
+                const records = Array.isArray(data.records) ? data.records : [];
+                if (records.length === 0) return document.getElementById('savedRecords').innerHTML = '<div class="alert alert-info">No records found.</div>';
+
+                const html = records.map(record => {
+                    const gradeClass = ({'O':'grade-o','A+':'grade-a-plus','A':'grade-a','B+':'grade-b-plus','B':'grade-b','C':'grade-c','D':'grade-d'})[record.grade] || 'grade-d';
+                    return `
+                        <div class="record-item">
+                            <div class="record-name">${record.name}</div>
+                            <div class="result-row"><span class="result-label">Roll Number:</span><span class="result-value">${record.roll}</span></div>
+                            <div class="result-row"><span class="result-label">Branch:</span><span class="result-value">${record.branch || ''}</span></div>
+                            <div class="result-row"><span class="result-label">Semester:</span><span class="result-value">${record.semester || ''}</span></div>
+                            <div class="result-row"><span class="result-label">Year:</span><span class="result-value">${record.year || ''}</span></div>
+                            <div class="result-row"><span class="result-label">Average:</span><span class="result-value">${Number(record.average).toFixed(2)}%</span></div>
+                            <div class="result-row"><span class="result-label">Grade:</span><span class="result-value"><span class="grade-badge ${gradeClass}">${record.grade}</span></span></div>
+                                    <div style="margin-top:12px; text-align:right;">
+                                        <button class="action-btn secondary" onclick="deleteRecord(${record.roll})">Delete</button>
+                                    </div>
+                                </div>`;
+                }).join('');
+                document.getElementById('savedRecords').innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('savedRecords').innerHTML = '<div class="alert alert-error">Error loading records.</div>';
+            }
+        }
+
+        async function deleteRecord(roll) {
+            if (!confirm('Delete record for roll ' + roll + '?')) return;
+            try {
+                const response = await fetch(`${API_URL}/api/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `roll=${encodeURIComponent(roll)}`
+                });
+                if (response.ok) {
+                    showAlert('Record deleted', 'success');
+                    loadRecords();
+                } else {
+                    showAlert('Failed to delete record', 'error');
+                }
+            } catch (e) {
+                showAlert('Error deleting record', 'error');
+            }
+        }
+
+        // Init
+        checkServer();
+        setInterval(checkServer, 5000);
+        // attach submit handler
+        document.getElementById('studentForm').addEventListener('submit', submitForm);
+        function clearForm() {
+            const form = document.getElementById('studentForm');
+            if (form) form.reset();
+            const rd = document.getElementById('resultDisplay');
+            if (rd) rd.innerHTML = '';
+            const alerts = document.getElementById('alerts');
+            if (alerts) alerts.innerHTML = '';
+            // reset submit button state
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Calculate & Save Grade';
+            }
+            document.getElementById('studentName')?.focus();
+        }
+    </script>
+ </body>
+   </html>
